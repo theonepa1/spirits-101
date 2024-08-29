@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vodka Shelf Price Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 900px;
+        }
+        .form-container {
+            width: 50%;
+            padding-right: 20px;
+            border-right: 1px solid #ccc;
+        }
+        .result-container {
+            width: 50%;
+            padding-left: 20px;
+        }
+        h1 {
+            color: #007bff;
+            font-size: 24px;
+        }
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            text-align: left;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f8f8;
+        }
+        .result-container h2 {
+            margin-top: 0;
+            color: #28a745;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1>Vodka Shelf Price Calculator</h1>
+            <form id="priceCalculator">
+                <label for="manufacturerCost">Manufacturer Cost per Case ($):</label>
+                <input type="number" id="manufacturerCost" value="55" step="0.01" required>
+
+                <label for="freightCharges">Freight Charges per Case ($):</label>
+                <input type="number" id="freightCharges" value="6" step="0.01" required>
+
+                <label for="warehouseCharges">Warehouse Charges per Case ($):</label>
+                <input type="number" id="warehouseCharges" value="6" step="0.01" required>
+
+                <label for="otherCosts">Other Costs per Case ($):</label>
+                <input type="number" id="otherCosts" value="16" step="0.01" required>
+
+                <label for="exciseDuty">Excise Duty per Bottle ($):</label>
+                <input type="number" id="exciseDuty" value="0.54" step="0.01" required>
+
+                <label for="stateTaxes">State Taxes per Bottle ($):</label>
+                <input type="number" id="stateTaxes" value="0.65" step="0.01" required>
+
+                <label for="myProfit">Your Profit per Bottle ($):</label>
+                <input type="number" id="myProfit" value="10" step="0.01" required>
+
+                <label for="retailerMargin">Retailer Margin (%):</label>
+                <input type="number" id="retailerMargin" value="35" step="0.01" required>
+
+                <label for="distributorMargin">Distributor Margin (%):</label>
+                <input type="number" id="distributorMargin" value="30" step="0.01" required>
+            </form>
+        </div>
+        <div class="result-container">
+            <h2>Cost Breakdown</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Amount ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total Cost for Importer (Excluding Profit and Margins)</td>
+                        <td id="total-importer-cost"></td>
+                    </tr>
+                    <tr>
+                        <td>Distributor Purchase Price per Bottle</td>
+                        <td id="result-distributor-price"></td>
+                    </tr>
+                    <tr>
+                        <td>Retailer Purchase Price per Bottle</td>
+                        <td id="result-retailer-price"></td>
+                    </tr>
+                    <tr>
+                        <td>Retailer Shelf Price per Bottle</td>
+                        <td id="result-shelf-price"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <h2>Margins</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Amount ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Your Profit per Bottle</td>
+                        <td id="result-my-profit"></td>
+                    </tr>
+                    <tr>
+                        <td>Distributor Dollar Margin per Bottle</td>
+                        <td id="result-distributor-margin"></td>
+                    </tr>
+                    <tr>
+                        <td>Retailer Dollar Margin per Bottle</td>
+                        <td id="result-retailer-margin"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function calculateShelfPrice() {
+            const manufacturerCost = parseFloat(document.getElementById('manufacturerCost').value) || 0;
+            const freightCharges = parseFloat(document.getElementById('freightCharges').value) || 0;
+            const warehouseCharges = parseFloat(document.getElementById('warehouseCharges').value) || 0;
+            const otherCosts = parseFloat(document.getElementById('otherCosts').value) || 0;
+            const exciseDuty = parseFloat(document.getElementById('exciseDuty').value) || 0;
+            const stateTaxes = parseFloat(document.getElementById('stateTaxes').value) || 0;
+            const myProfit = parseFloat(document.getElementById('myProfit').value) || 0;
+            const retailerMargin = parseFloat(document.getElementById('retailerMargin').value) / 100 || 0;
+            const distributorMargin = parseFloat(document.getElementById('distributorMargin').value) / 100 || 0;
+
+            // Assume 1 case = 12 bottles
+            const bottlesPerCase = 12;
+
+            // Calculate total cost per case
+            const totalCostPerCase = manufacturerCost + freightCharges + warehouseCharges + otherCosts;
+            const costPerBottle = totalCostPerCase / bottlesPerCase;
+
+            // Calculate total cost for importer (excluding profit and margins)
+            const totalImporterCost = costPerBottle + exciseDuty + stateTaxes;
+
+            // Calculate distributor price per bottle (before margin)
+            const distributorPricePerBottle = totalImporterCost + myProfit;
+            
+            // Calculate distributor price per bottle with margin
+            const distributorPriceWithMargin = distributorPricePerBottle * (1 + distributorMargin);
+
+            // Calculate retailer purchase price (price distributor sells to retailer)
+            const retailerPurchasePrice = distributorPriceWithMargin;
+
+            // Calculate retailer shelf price
+            const retailerShelfPrice = retailerPurchasePrice / (1 - retailerMargin);
+
+            // Calculate dollar margins
+            const distributorDollarMargin = distributorPricePerBottle * distributorMargin;
+            const retailerDollarMargin = retailerShelfPrice - retailerPurchasePrice;
+
+            // Display the results
+            document.getElementById('total-importer-cost').textContent = `$${totalImporterCost.toFixed(2)}`;
+            document.getElementById('result-distributor-price').textContent = `$${distributorPricePerBottle.toFixed(2)}`;
+            document.getElementById('result-retailer-price').textContent = `$${retailerPurchasePrice.toFixed(2)}`;
+            document.getElementById('result-shelf-price').textContent = `$${retailerShelfPrice.toFixed(2)}`;
+            document.getElementById('result-my-profit').textContent = `$${myProfit.toFixed(2)}`;
+            document.getElementById('result-distributor-margin').textContent = `$${distributorDollarMargin.toFixed(2)}`;
+            document.getElementById('result-retailer-margin').textContent = `$${retailerDollarMargin.toFixed(2)}`;
+        }
+
+        // Add event listeners to automatically calculate on input change
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function() {
+                calculateShelfPrice();
+            });
+        });
+
+        // Initial calculation with default values
+        calculateShelfPrice();
+    </script>
+</body>
+</html>
