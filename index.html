@@ -232,26 +232,39 @@
             const distributorMargin = Number(document.getElementById("distributor-margin").value) / 100;
             const retailerMargin = Number(document.getElementById("retailer-margin").value) / 100;
 
-            const proofGallonsPerCase = 2.37753;
-            const proofLitersPerCase = proofGallonsPerCase * 3.78541;
+            // Constants
+            const ABV = 40; // Default ABV (40% alcohol by volume)
+            const proof = ABV * 2; // Proof value
+            const litersPerCase = 12 * 0.75; // For a case of 12 bottles (750ml each)
+            const gallonsPerCase = litersPerCase * 0.264172;
 
-            const federalTaxPerCase = proofGallonsPerCase * 2.7; // Federal tax
+            // Compute Proof Liters and Proof Gallons
+            const proofLitersPerCase = litersPerCase * (proof / 100);
+            const proofGallonsPerCase = gallonsPerCase * (proof / 100);
+
+            // Taxes and Duties
+            const federalTaxPerCase = proofGallonsPerCase * 2.7; // Federal tax (CBMA rate)
             const cbpDutyPerCase = proofLitersPerCase * CBP_RATES[spiritType]; // CBP duty
 
+            // Total Costs
             const baseCost = fob + shipping + warehousing + transportation + (misc / cases);
             const totalCostPerCase = baseCost + federalTaxPerCase + cbpDutyPerCase;
 
+            // Pricing
             const importerPrice = totalCostPerCase * (1 + importerMargin);
             const distributorPrice = importerPrice * (1 + distributorMargin);
             const retailPrice = distributorPrice / (1 - retailerMargin);
 
+            // Per-Bottle Pricing
             const importerPriceBottle = importerPrice / 12;
             const distributorPriceBottle = distributorPrice / 12;
             const retailPriceBottle = retailPrice / 12;
 
+            // Profits
             const importerProfitPerCase = importerPrice - totalCostPerCase;
             const importerTotalProfit = importerProfitPerCase * cases;
 
+            // Update Output Results
             document.getElementById("excise-tax").textContent = federalTaxPerCase.toFixed(2);
             document.getElementById("cbp-duty").textContent = cbpDutyPerCase.toFixed(2);
             document.getElementById("total-cost").textContent = totalCostPerCase.toFixed(2);
