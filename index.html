@@ -76,7 +76,7 @@
         }
         .output-section {
             background-color: #fff;
-            padding: 10px;
+            padding-left: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             margin-bottom: 15px;
@@ -90,14 +90,16 @@
             font-weight: bold;
             color: #000;
         }
+
+        p {
+            margin: 8px 0px 8px 0px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Left Panel: Inputs -->
         <div class="panel left-panel">
-            <h2>Input Details</h2>
-
             <!-- Product Details and Cost Inputs Side by Side -->
             <div class="subsection-container">
                 <div class="subsection">
@@ -140,98 +142,99 @@
                 </div>
             </div>
 
-            <!-- Distributor Costs -->
-            <div class="subsection">
-                <h3>Distributor Costs</h3>
-                <label for="state-tax">State Tax (per liter):</label>
-                <select id="state-tax">
-                    <option value="5.73">Alabama - $5.73</option>
-                    <option value="3.38">Alaska - $3.38</option>
-                    <option value="0.79">Arizona - $0.79</option>
-                    <option value="2.12">Arkansas - $2.12</option>
-                    <option value="0.87">California - $0.87</option>
-                    <option value="0.60">Colorado - $0.60</option>
-                    <option value="1.57">Connecticut - $1.57</option>
-                    <option value="1.19">Delaware - $1.19</option>
-                    <option value="1.72">Florida - $1.72</option>
-                    <option value="1.00" selected>Georgia - $1.00</option>
-                    <option value="1.58">Hawaii - $1.58</option>
-                    <option value="3.21">Idaho - $3.21</option>
-                    <option value="2.26">Illinois - $2.26</option>
-                    <option value="0.71">Indiana - $0.71</option>
-                    <option value="3.73">Iowa - $3.73</option>
-                    <option value="0.66">Kansas - $0.66</option>
-                    <option value="2.44">Kentucky - $2.44</option>
-                    <option value="0.80">Louisiana - $0.80</option>
-                    <option value="3.16">Maine - $3.16</option>
-                    <option value="1.44">Maryland - $1.44</option>
-                    <option value="1.07">Massachusetts - $1.07</option>
-                    <option value="3.59">Michigan - $3.59</option>
-                    <option value="2.30">Minnesota - $2.30</option>
-                    <option value="2.25">Mississippi - $2.25</option>
-                    <option value="0.53">Missouri - $0.53</option>
-                    <option value="2.79">Montana - $2.79</option>
-                    <option value="0.99">Nebraska - $0.99</option>
-                    <option value="0.95">Nevada - $0.95</option>
-                    <option value="0.00">New Hampshire - $0.00</option>
-                    <option value="1.45">New Jersey - $1.45</option>
-                    <option value="1.60">New Mexico - $1.60</option>
-                    <option value="1.70">New York - $1.70</option>
-                    <option value="4.33">North Carolina - $4.33</option>
-                    <option value="1.24">North Dakota - $1.24</option>
-                    <option value="3.01">Ohio - $3.01</option>
-                    <option value="1.47">Oklahoma - $1.47</option>
-                    <option value="6.04">Oregon - $6.04</option>
-                    <option value="1.96">Pennsylvania - $1.96</option>
-                    <option value="1.43">Rhode Island - $1.43</option>
-                    <option value="1.43">South Carolina - $1.43</option>
-                    <option value="1.29">South Dakota - $1.29</option>
-                    <option value="1.18">Tennessee - $1.18</option>
-                    <option value="0.63">Texas - $0.63</option>
-                    <option value="4.21">Utah - $4.21</option>
-                    <option value="2.22">Vermont - $2.22</option>
-                    <option value="5.83">Virginia - $5.83</option>
-                    <option value="9.66">Washington - $9.66</option>
-                    <option value="2.20">West Virginia - $2.20</option>
-                    <option value="0.86">Wisconsin - $0.86</option>
-                    <option value="0.00">Wyoming - $0.00</option>
-                    <!-- Add other states as needed -->
-                </select>
+            <div class="subsection-container">
+                <!-- Distributor Costs -->
+                <div class="subsection">
+                    <h3>Distributor Costs</h3>
+                    <label for="state-tax">State Tax (per liter):</label>
+                    <select id="state-tax">
+                        <option value="5.73">Alabama - $5.73</option>
+                        <option value="3.38">Alaska - $3.38</option>
+                        <option value="0.79">Arizona - $0.79</option>
+                        <option value="2.12">Arkansas - $2.12</option>
+                        <option value="0.87">California - $0.87</option>
+                        <option value="0.60">Colorado - $0.60</option>
+                        <option value="1.57">Connecticut - $1.57</option>
+                        <option value="1.19">Delaware - $1.19</option>
+                        <option value="1.72">Florida - $1.72</option>
+                        <option value="1.00" selected>Georgia - $1.00</option>
+                        <option value="1.58">Hawaii - $1.58</option>
+                        <option value="3.21">Idaho - $3.21</option>
+                        <option value="2.26">Illinois - $2.26</option>
+                        <option value="0.71">Indiana - $0.71</option>
+                        <option value="3.73">Iowa - $3.73</option>
+                        <option value="0.66">Kansas - $0.66</option>
+                        <option value="2.44">Kentucky - $2.44</option>
+                        <option value="0.80">Louisiana - $0.80</option>
+                        <option value="3.16">Maine - $3.16</option>
+                        <option value="1.44">Maryland - $1.44</option>
+                        <option value="1.07">Massachusetts - $1.07</option>
+                        <option value="3.59">Michigan - $3.59</option>
+                        <option value="2.30">Minnesota - $2.30</option>
+                        <option value="2.25">Mississippi - $2.25</option>
+                        <option value="0.53">Missouri - $0.53</option>
+                        <option value="2.79">Montana - $2.79</option>
+                        <option value="0.99">Nebraska - $0.99</option>
+                        <option value="0.95">Nevada - $0.95</option>
+                        <option value="0.00">New Hampshire - $0.00</option>
+                        <option value="1.45">New Jersey - $1.45</option>
+                        <option value="1.60">New Mexico - $1.60</option>
+                        <option value="1.70">New York - $1.70</option>
+                        <option value="4.33">North Carolina - $4.33</option>
+                        <option value="1.24">North Dakota - $1.24</option>
+                        <option value="3.01">Ohio - $3.01</option>
+                        <option value="1.47">Oklahoma - $1.47</option>
+                        <option value="6.04">Oregon - $6.04</option>
+                        <option value="1.96">Pennsylvania - $1.96</option>
+                        <option value="1.43">Rhode Island - $1.43</option>
+                        <option value="1.43">South Carolina - $1.43</option>
+                        <option value="1.29">South Dakota - $1.29</option>
+                        <option value="1.18">Tennessee - $1.18</option>
+                        <option value="0.63">Texas - $0.63</option>
+                        <option value="4.21">Utah - $4.21</option>
+                        <option value="2.22">Vermont - $2.22</option>
+                        <option value="5.83">Virginia - $5.83</option>
+                        <option value="9.66">Washington - $9.66</option>
+                        <option value="2.20">West Virginia - $2.20</option>
+                        <option value="0.86">Wisconsin - $0.86</option>
+                        <option value="0.00">Wyoming - $0.00</option>
+                        <!-- Add other states as needed -->
+                    </select>
 
-                <label for="inland-transportation">Inland Transportation: 
-                    <span id="inland-transportation-slider-value" class="bold-value">$3.00</span>
-                </label>
-                <input type="range" id="inland-transportation" min="1.5" max="8" value="3">
+                    <label for="inland-transportation">Inland Transportation: 
+                        <span id="inland-transportation-slider-value" class="bold-value">$3.00</span>
+                    </label>
+                    <input type="range" id="inland-transportation" min="1.5" max="8" value="3">
 
-                <label for="distributor-warehousing">Warehousing Cost: 
-                    <span id="distributor-warehousing-slider-value" class="bold-value">$1.50</span>
-                </label>
-                <input type="range" id="distributor-warehousing" min="0.5" max="3.5" value="1.5">
-            </div>
+                    <label for="distributor-warehousing">Warehousing Cost: 
+                        <span id="distributor-warehousing-slider-value" class="bold-value">$1.50</span>
+                    </label>
+                    <input type="range" id="distributor-warehousing" min="0.5" max="3.5" value="1.5">
+                </div>
 
-            <!-- Profit Margins -->
-            <div class="subsection">
-                <h3>Profit Margins</h3>
-                <label for="importer-margin">Importer Margin: 
-                    <span id="importer-margin-slider-value" class="bold-value">20%</span>
-                </label>
-                <input type="range" id="importer-margin" min="5" max="50" value="20">
+                <!-- Profit Margins -->
+                <div class="subsection">
+                    <h3>Profit Margins</h3>
+                    <label for="importer-margin">Importer Margin: 
+                        <span id="importer-margin-slider-value" class="bold-value">20%</span>
+                    </label>
+                    <input type="range" id="importer-margin" min="5" max="50" value="20">
 
-                <label for="distributor-margin">Distributor Margin: 
-                    <span id="distributor-margin-slider-value" class="bold-value">25%</span>
-                </label>
-                <input type="range" id="distributor-margin" min="5" max="50" value="25">
+                    <label for="distributor-margin">Distributor Margin: 
+                        <span id="distributor-margin-slider-value" class="bold-value">25%</span>
+                    </label>
+                    <input type="range" id="distributor-margin" min="5" max="50" value="25">
 
-                <label for="retailer-margin">Retailer Margin: 
-                    <span id="retailer-margin-slider-value" class="bold-value">30%</span>
-                </label>
-                <input type="range" id="retailer-margin" min="10" max="50" value="30">
+                    <label for="retailer-margin">Retailer Margin: 
+                        <span id="retailer-margin-slider-value" class="bold-value">30%</span>
+                    </label>
+                    <input type="range" id="retailer-margin" min="10" max="50" value="30">
+                </div>
             </div>
         </div>
 
         <!-- Right Panel: Outputs -->
         <div class="panel right-panel">
-            <h2>Output Results</h2>
 
             <!-- Cost per Case Section -->
             <div class="output-section">
