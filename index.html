@@ -94,6 +94,20 @@
         p {
             margin: 8px 0px 8px 0px;
         }
+
+        .copy-link-button {
+            background-color: blue; /* Set the button background to blue */
+            color: white; /* Set the text color to white for better contrast */
+            border: none; /* Remove the border */
+            padding: 10px 15px; /* Add some padding for a better click area */
+            border-radius: 5px; /* Add rounded corners */
+            font-size: 14px; /* Set a readable font size */
+            cursor: pointer; /* Change the cursor to a pointer on hover */
+        }
+
+        .copy-link-button:hover {
+            background-color: darkblue; /* Slightly darker blue on hover */
+        }
     </style>
 </head>
 <body>
@@ -202,9 +216,9 @@
                     </select>
 
                     <label for="inland-transportation">Inland Transportation: 
-                        <span id="inland-transportation-slider-value" class="bold-value">$3.00</span>
+                        <span id="inland-transportation-slider-value" class="bold-value">$3.50</span>
                     </label>
-                    <input type="range" id="inland-transportation" min="1.5" max="8" value="3">
+                    <input type="range" id="inland-transportation" min="1.5" max="8" value="3.5">
 
                     <label for="distributor-warehousing">Warehousing Cost: 
                         <span id="distributor-warehousing-slider-value" class="bold-value">$1.50</span>
@@ -267,10 +281,68 @@
                 <p>Importer Profit per Case: $<span id="importer-profit-case">0</span></p>
                 <p>Importer Total Profit: $<span id="importer-profit">0</span></p>
             </div>
+
+            <button id="copy-link" class="copy-link-button">Copy Shareable Link</button>
         </div>
     </div>
 
     <script>
+        function encodeInputDetails() {
+            const type = document.getElementById("type").value;
+            const cases = document.getElementById("cases").value;
+            const cogs = document.getElementById("cogs").value;
+            const shipping = document.getElementById("shipping").value;
+            const warehousing = document.getElementById("warehousing").value;
+            const transportation = document.getElementById("transportation").value;
+            const misc = document.getElementById("misc").value;
+            const stateTax = document.getElementById("state-tax").value;
+            const inlandTransportation = document.getElementById("inland-transportation").value;
+            const distributorWarehousing = document.getElementById("distributor-warehousing").value;
+            const importerMargin = document.getElementById("importer-margin").value;
+            const distributorMargin = document.getElementById("distributor-margin").value;
+            const retailerMargin = document.getElementById("retailer-margin").value;
+
+            const params = {
+                type, cases, cogs, shipping, warehousing, transportation, misc,
+                stateTax, inlandTransportation, distributorWarehousing,
+                importerMargin, distributorMargin, retailerMargin
+            };
+
+            // Convert the params object into a query string
+            const hash = Object.keys(params)
+                .map(key => `${key}=${encodeURIComponent(params[key])}`)
+                .join("&");
+
+            // Update the URL
+            history.replaceState(null, null, `#${hash}`);
+        }
+
+        function decodeInputDetails() {
+            const hash = location.hash.substring(1); // Remove the '#' symbol
+            const params = new URLSearchParams(hash);
+
+            // Populate the fields
+            if (params.has("type")) document.getElementById("type").value = params.get("type");
+            if (params.has("cases")) document.getElementById("cases").value = params.get("cases");
+            if (params.has("cogs")) document.getElementById("cogs").value = params.get("cogs");
+            if (params.has("shipping")) document.getElementById("shipping").value = params.get("shipping");
+            if (params.has("warehousing")) document.getElementById("warehousing").value = params.get("warehousing");
+            if (params.has("transportation")) document.getElementById("transportation").value = params.get("transportation");
+            if (params.has("misc")) document.getElementById("misc").value = params.get("misc");
+            if (params.has("stateTax")) document.getElementById("state-tax").value = params.get("stateTax");
+            if (params.has("inlandTransportation")) document.getElementById("inland-transportation").value = params.get("inlandTransportation");
+            if (params.has("distributorWarehousing")) document.getElementById("distributor-warehousing").value = params.get("distributorWarehousing");
+            if (params.has("importerMargin")) document.getElementById("importer-margin").value = params.get("importerMargin");
+            if (params.has("distributorMargin")) document.getElementById("distributor-margin").value = params.get("distributorMargin");
+            if (params.has("retailerMargin")) document.getElementById("retailer-margin").value = params.get("retailerMargin");
+
+            syncSliders();
+
+            // Trigger recalculation
+            calculateResults();
+        }
+
+
         const CBP_RATES = { whiskey: 2.06, vodka: 1.78, gin: 2.38, rum: 1.59 };
 
         function syncInput(sliderId, valueDisplayId) {
@@ -281,18 +353,22 @@
                 valueDisplay.textContent = sliderId.includes("margin") ? `${slider.value}%` : `$${slider.value}`;
                 calculateResults();
             });
+            valueDisplay.textContent = sliderId.includes("margin") ? `${slider.value}%` : `$${slider.value}`;
         }
 
-        // Sync sliders
-        syncInput("cogs", "cogs-slider-value");
-        syncInput("shipping", "shipping-slider-value");
-        syncInput("warehousing", "warehousing-slider-value");
-        syncInput("transportation", "transportation-slider-value");
-        syncInput("inland-transportation", "inland-transportation-slider-value");
-        syncInput("distributor-warehousing", "distributor-warehousing-slider-value");
-        syncInput("importer-margin", "importer-margin-slider-value");
-        syncInput("distributor-margin", "distributor-margin-slider-value");
-        syncInput("retailer-margin", "retailer-margin-slider-value");
+        function syncSliders() {
+            syncInput("cogs", "cogs-slider-value");
+            syncInput("shipping", "shipping-slider-value");
+            syncInput("warehousing", "warehousing-slider-value");
+            syncInput("transportation", "transportation-slider-value");
+            syncInput("inland-transportation", "inland-transportation-slider-value");
+            syncInput("distributor-warehousing", "distributor-warehousing-slider-value");
+            syncInput("importer-margin", "importer-margin-slider-value");
+            syncInput("distributor-margin", "distributor-margin-slider-value");
+            syncInput("retailer-margin", "retailer-margin-slider-value");
+        }
+
+        syncSliders();
 
         function calculateResults() {
             const cases = Number(document.getElementById("cases").value);
@@ -320,6 +396,8 @@
             // Distributor Costs
             const stateTaxPerCase = litersPerCase * stateTax;
             const distributorCosts = stateTaxPerCase + inlandTransportation + warehousing;
+
+            console.log(stateTaxPerCase, inlandTransportation, warehousing)
 
             // Distributor Selling Price
             const distributorPrice = (importerPrice + distributorCosts) * (1 + distributorMargin);
@@ -356,6 +434,16 @@
         document.getElementById("misc").addEventListener("input", calculateResults);
 
         calculateResults(); // Initial calculation
+
+        document.getElementById("copy-link").addEventListener("click", () => {
+            encodeInputDetails();
+            const link = location.href;
+            navigator.clipboard.writeText(link).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        });
+
+        window.addEventListener("load", decodeInputDetails);
     </script>
 </body>
 </html>
