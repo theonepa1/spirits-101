@@ -371,6 +371,7 @@
         syncSliders();
 
         function calculateResults() {
+            const type = document.getElementById("type").value;
             const cases = Number(document.getElementById("cases").value);
             const litersPerCase = 9; // Fixed at 9 liters per case
             const stateTax = Number(document.getElementById("state-tax").value);
@@ -387,7 +388,7 @@
             const retailerMargin = Number(document.getElementById("retailer-margin").value) / 100;
 
             const federalTaxPerCase = litersPerCase * 0.40; // Example federal tax
-            const cbpDutyPerCase = litersPerCase * CBP_RATES["whiskey"]; // Using "whiskey" as default
+            const cbpDutyPerCase = litersPerCase * CBP_RATES[type]; // Using "whiskey" as default
             const baseCost = cogs + shipping + warehousingCost + transportation + (misc / cases) + federalTaxPerCase + cbpDutyPerCase;
 
             // Importer Selling Price
@@ -397,7 +398,9 @@
             const stateTaxPerCase = litersPerCase * stateTax;
             const distributorCosts = stateTaxPerCase + inlandTransportation + warehousing;
 
-            console.log(stateTaxPerCase, inlandTransportation, warehousing)
+            console.log(stateTaxPerCase, inlandTransportation, warehousing);
+
+            console.log(type);
 
             // Distributor Selling Price
             const distributorPrice = (importerPrice + distributorCosts) * (1 + distributorMargin);
@@ -429,6 +432,7 @@
             document.getElementById("importer-profit").textContent = importerTotalProfit.toFixed(2);
         }
 
+        document.getElementById("type").addEventListener("change", calculateResults);
         document.getElementById("cases").addEventListener("input", calculateResults);
         document.getElementById("state-tax").addEventListener("change", calculateResults);
         document.getElementById("misc").addEventListener("input", calculateResults);
