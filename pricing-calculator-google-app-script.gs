@@ -59,7 +59,7 @@ function setupCostAnalysisUI() {
     ["State Tax (per liter)", "Georgia", "Select a state"],
     ["Inland Transportation", 3.5, "Distributor inland transportation cost"],
     ["Warehousing (Distributor)", 1.5, "Distributor warehousing cost"],
-    ["Importer Margin (%)", 20, "Importer margin percentage"],
+    ["Importer Margin (%)", 35, "Importer margin percentage"],
     ["Distributor Margin (%)", 25, "Distributor margin percentage"],
     ["Retailer Margin (%)", 30, "Retailer margin percentage"]
   ];
