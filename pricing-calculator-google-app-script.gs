@@ -29,7 +29,23 @@ function setupCostAnalysisUI() {
       .setHorizontalAlignment("center")
       .setBackground("#d9ead3");
   
-  // Input table data (header in row 2, data in rows 3–15).
+  // Input table data.
+  // We'll update the rows as follows:
+  // Row2: header
+  // Row3: Type of Spirit
+  // Row4: Total Cases
+  // Row5: COGS
+  // Row6: Shipping
+  // Row7: Warehousing (Importer)
+  // Row8: Transportation
+  // Row9: Import Tariffs (%)  <-- NEW
+  // Row10: Misc Costs
+  // Row11: State Tax (per liter)
+  // Row12: Inland Transportation
+  // Row13: Warehousing (Distributor)
+  // Row14: Importer Margin (%)
+  // Row15: Distributor Margin (%)
+  // Row16: Retailer Margin (%)
   var inputData = [
     ["Parameter", "Value", "Description"],
     ["Type of Spirit", "whiskey", "Select: whiskey, vodka, gin, rum"],
@@ -38,6 +54,7 @@ function setupCostAnalysisUI() {
     ["Shipping", 7, "Shipping cost"],
     ["Warehousing (Importer)", 1, "Importer warehousing cost"],
     ["Transportation", 1.5, "Transportation cost"],
+    ["Import Tariffs (%)", 0, "Tariff percentage applied to COGS"],
     ["Misc Costs", 5000, "Total miscellaneous costs"],
     ["State Tax (per liter)", "Georgia", "Select a state"],
     ["Inland Transportation", 3.5, "Distributor inland transportation cost"],
@@ -46,12 +63,13 @@ function setupCostAnalysisUI() {
     ["Distributor Margin (%)", 25, "Distributor margin percentage"],
     ["Retailer Margin (%)", 30, "Retailer margin percentage"]
   ];
-  sheet.getRange("A2:C15").setValues(inputData);
+  // Write the input table starting at A2.
+  sheet.getRange("A2:C16").setValues(inputData);
   sheet.getRange("A2:C2").setFontWeight("bold").setBackground("#c9daf8");
   sheet.setColumnWidth(1, 180);
   sheet.setColumnWidth(2, 120);
   sheet.setColumnWidth(3, 300);
-  sheet.getRange("A2:C15").setBorder(true, true, true, true, true, true);
+  sheet.getRange("A2:C16").setBorder(true, true, true, true, true, true);
   
   // --- Data validation for dropdowns ---
   // "Type of Spirit" in B3.
@@ -60,7 +78,7 @@ function setupCostAnalysisUI() {
       .build();
   sheet.getRange("B3").setDataValidation(spiritValidation);
   
-  // "State Tax (per liter)" in B10.
+  // "State Tax (per liter)" in B11.
   var states = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", 
     "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", 
@@ -75,7 +93,7 @@ function setupCostAnalysisUI() {
   var stateValidation = SpreadsheetApp.newDataValidation()
       .requireValueInList(states, true)
       .build();
-  sheet.getRange("B10").setDataValidation(stateValidation);
+  sheet.getRange("B11").setDataValidation(stateValidation);
   
   // -----------------------------
   // Setup the Output Section (Columns E–F, arranged vertically)
@@ -95,7 +113,7 @@ function setupCostAnalysisUI() {
       .setBackground("#f4cccc");
   var group1Data = [
     ["Federal Taxes", ""],
-    ["CBP (Customs) Duty", ""],
+    ["Import Duty", ""],
     ["Distributor Costs", ""],
     ["Importer Total Cost", ""]
   ];
@@ -170,8 +188,8 @@ function calculateCostAnalysisUI() {
     return;
   }
   
-  // Read input data from A3:C15.
-  var inputData = sheet.getRange("A3:C15").getValues();
+  // Read input data from A3:C16.
+  var inputData = sheet.getRange("A3:C16").getValues();
   var inputs = {};
   for (var i = 0; i < inputData.length; i++) {
     var key = inputData[i][0];
@@ -186,6 +204,7 @@ function calculateCostAnalysisUI() {
   var shipping = Number(inputs["Shipping"]);
   var warehousingImporter = Number(inputs["Warehousing (Importer)"]);
   var transportation = Number(inputs["Transportation"]);
+  var importTariffs = Number(inputs["Import Tariffs (%)"]); // New field
   var misc = Number(inputs["Misc Costs"]);
   
   // Look up state tax rate by state name.
@@ -217,10 +236,12 @@ function calculateCostAnalysisUI() {
   var litersPerCase = 9;
   var federalTaxPerCase = litersPerCase * 0.40;
   var CBP_RATES = {whiskey: 2.06, vodka: 1.78, gin: 2.38, rum: 1.59};
-  var cbpDutyPerCase = litersPerCase * (CBP_RATES[type] || CBP_RATES.whiskey);
+  // Updated Import Duty: now calculated as a percentage of COGS.
+  var importDutyPerCase = cogs * (importTariffs / 100);
   
+  // Base cost per case now includes import duty instead of the fixed CBP duty.
   var baseCost = cogs + shipping + warehousingImporter + transportation +
-                 (misc / cases) + federalTaxPerCase + cbpDutyPerCase;
+                 (misc / cases) + federalTaxPerCase + importDutyPerCase;
   var importerPrice = baseCost * (1 + importerMargin);
   var stateTaxPerCase = litersPerCase * stateTax;
   var distributorCosts = stateTaxPerCase + inlandTransportation + warehousingDistributor;
@@ -239,7 +260,7 @@ function calculateCostAnalysisUI() {
   // Group 1: Cost per Case.
   var group1Outputs = [
     ["$" + federalTaxPerCase.toFixed(2)],
-    ["$" + cbpDutyPerCase.toFixed(2)],
+    ["$" + importDutyPerCase.toFixed(2)],  // Updated label: Import Duty.
     ["$" + distributorCosts.toFixed(2)],
     ["$" + baseCost.toFixed(2)]
   ];
@@ -278,7 +299,7 @@ function calculateCostAnalysisUI() {
 function onEdit(e) {
   var sheet = e.range.getSheet();
   if (sheet.getName() !== "Cost Analysis Tool") return;
-  var inputRange = sheet.getRange("A3:C15");
+  var inputRange = sheet.getRange("A3:C16");
   if (e.range.getRow() >= inputRange.getRow() &&
       e.range.getLastRow() <= inputRange.getLastRow() &&
       e.range.getColumn() >= inputRange.getColumn() &&
