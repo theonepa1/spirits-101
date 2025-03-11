@@ -19,37 +19,33 @@ function setupCostAnalysisUI() {
       .setHorizontalAlignment("center")
       .setBackground("#d9ead3");
 
+  // Removed "Type of Spirit" row; renamed old COGS -> Brand
   var inputData = [
-    ["Parameter",               "Value",   "Description"],
-    ["Type of Spirit",          "whiskey", "Select: whiskey, vodka, gin, rum"],
-    ["Total Cases",             4000,      "Total number of cases (min 500)"],
-    ["COGS",                    37,        "Cost of Goods Sold"],
-    ["Shipping",                7,         "Shipping cost"],
-    ["Warehousing (Importer)",  7.5,       "Importer warehousing cost"],
-    ["Transportation",          0,         "Transportation cost"],
-    ["Import Tariffs (%)",      0,         "Tariff percentage applied to COGS"],
-    ["Misc Costs",              100000,    "Total miscellaneous costs"],
-    ["State Tax (per liter)",   "Georgia", "Select a state"],
-    ["Inland Transportation",   3.5,       "Distributor inland transportation"],
-    ["Warehousing (Distributor)", 5,       "Distributor warehousing cost"],
-    ["Distributor Markup (%)",  30,        "Distributor markup percentage"],
-    ["Retailer Markup (%)",     30,        "Retailer markup percentage"],
-    ["Retail Shelf Price",      18,        "Final price per bottle at retail"]
+    ["Parameter",               "Value",                "Description"],
+    ["Total Cases",             4000,                   "Total number of cases (min 500)"],
+    ["Brand",                   "Original Imperial",    "Select brand from dropdown"],
+    ["Shipping",                7,                      "Shipping cost"],
+    ["Warehousing (Importer)",  7.5,                    "Importer warehousing cost"],
+    ["Transportation",          0,                      "Transportation cost"],
+    ["Import Tariffs (%)",      0,                      "Tariff percentage applied to brand cost"],
+    ["Misc Costs",              100000,                 "Total miscellaneous costs"],
+    ["State Tax (per liter)",   "Georgia",              "Select a state"],
+    ["Inland Transportation",   3.5,                    "Distributor inland transportation cost"],
+    ["Warehousing (Distributor)", 5,                    "Distributor warehousing cost"],
+    ["Distributor Markup (%)",  30,                     "Distributor markup percentage"],
+    ["Retailer Markup (%)",     30,                     "Retailer markup percentage"],
+    ["Retail Shelf Price",      18,                     "Final price per bottle at retail"]
   ];
-  sheet.getRange("A2:C16").setValues(inputData);
+  sheet.getRange("A2:C15").setValues(inputData);
 
   // Slight formatting
   sheet.getRange("A2:C2").setFontWeight("bold").setBackground("#c9daf8");
-  sheet.getRange("A2:C16").setBorder(true, true, true, true, true, true);
+  sheet.getRange("A2:C15").setBorder(true, true, true, true, true, true);
 
   // -----------------------------
   // 2) Setup the State Tax Table (columns AA–AB)
-  //    We'll do a simple VLOOKUP later
   // -----------------------------
-  // Put a label in AA1
   sheet.getRange("AA1").setValue("State Tax Table");
-  
-  // Full list of states + tax rates
   var stateTaxData = [
     ["Alabama", 5.73], ["Alaska", 3.38], ["Arizona", 0.79], ["Arkansas", 2.12],
     ["California", 0.87], ["Colorado", 0.60], ["Connecticut", 1.57], ["Delaware", 1.19],
@@ -65,20 +61,43 @@ function setupCostAnalysisUI() {
     ["Vermont", 2.22], ["Virginia", 5.83], ["Washington", 9.66], ["West Virginia", 2.20],
     ["Wisconsin", 0.86], ["Wyoming", 0.00]
   ];
-  // Write this table starting at AA2
   sheet.getRange(2, 27, stateTaxData.length, 2).setValues(stateTaxData);
 
-  // Provide data validation for state selection (B11) from our table in column AA
+  // Provide data validation for state selection (B9) from our table in column AA
   var statesRange = sheet.getRange(2, 27, stateTaxData.length, 1); // AA2:AA51
   var stateValidation = SpreadsheetApp.newDataValidation()
       .requireValueInRange(statesRange, true)
       .build();
-  sheet.getRange("B11").setDataValidation(stateValidation);
+  sheet.getRange("B10").setDataValidation(stateValidation);
 
   // -----------------------------
-  // 3) Setup the Output Section (E–F)
+  // 3) Setup the Brand -> Cost table (columns AC–AD)
+  //    We'll hide these columns after populating
   // -----------------------------
-  // We'll define four sections in the same structure as before.
+  sheet.getRange("AC1").setValue("Brand Cost Table");
+  var brandCostData = [
+    ["Original Imperial",           25],
+    ["Captain's Select 3 year",     38],
+    ["Master's Imperial 6 year",    47],
+    ["Invincible Vodka",            60],
+    ["Bombay Blanche Gin",          60],
+    ["Oaked 12 year old",           225]
+  ];
+  sheet.getRange(2, 29, brandCostData.length, 2).setValues(brandCostData);
+
+  // Provide data validation for brand selection (B4)
+  var brandRange = sheet.getRange(2, 29, brandCostData.length, 1); // AC2:AC7
+  var brandValidation = SpreadsheetApp.newDataValidation()
+      .requireValueInRange(brandRange, true)
+      .build();
+  sheet.getRange("B4").setDataValidation(brandValidation);
+
+  // Hide columns AC–AD
+  sheet.hideColumns(29, 2); // 29 = AC, 2 columns wide => AC & AD
+
+  // -----------------------------
+  // 4) Setup the Output Section (Columns E–F)
+  // -----------------------------
   var sections = [
     {
       title: "Profit Analysis",
@@ -133,7 +152,7 @@ function setupCostAnalysisUI() {
       .setHorizontalAlignment("center")
       .setBackground("#f4cccc");
 
-    // Data rows (labels)
+    // Labels
     sheet.getRange(startRow + 1, 5, rows, 2).setValues(section.data);
 
     // Borders
@@ -142,85 +161,106 @@ function setupCostAnalysisUI() {
   });
 
   // -----------------------------
-  // 4) Insert the Spreadsheet Formulas
-  //    All references are absolute so they update reliably.
+  // 5) Insert Spreadsheet Formulas
+  //    All references updated for new row layout
   // -----------------------------
 
   // (A) Cost per Case items
-  //
-  // F8 (Federal Taxes):
-  //   = 9 liters/case * 0.264172 gal/liter * (40/50) * 2.7
+  // F8: Federal Taxes = 9 liters/case * 0.264172 * (40/50) * 2.7
   sheet.getRange("F8").setFormula("=9 * 0.264172 * (40/50) * 2.7");
 
-  // F9 (Import Duty):
-  //   = B5 (COGS) * (B9 / 100) (Import Tariffs %)
-  sheet.getRange("F9").setFormula("=$B$5 * ($B$9 / 100)");
+  // F9: Import Duty
+  //    brandCost * (Import Tariffs %)
+  //    brandCost = VLOOKUP($B$4, $AC$2:$AD$7, 2, FALSE)
+  //    importTariffs% = B8 / 100
+  sheet.getRange("F9").setFormula(
+    "=VLOOKUP($B$4, $AC$2:$AD$7, 2, FALSE) * ($B$8 / 100)"
+  );
 
-  // F10 (State Tax):
-  //   = 9 liters/case * VLOOKUP(B11, AA2:AB51, 2, FALSE)
-  sheet.getRange("F10").setFormula("=9 * VLOOKUP($B$11,$AA$2:$AB$51,2,FALSE)");
+  // F10: State Tax = 9 * VLOOKUP($B$9, $AA$2:$AB$51, 2, FALSE)
+  sheet.getRange("F10").setFormula(
+    "=9 * VLOOKUP($B$10, $AA$2:$AB$51, 2, FALSE)"
+  );
 
-  // F11 (Distributor Costs):
-  //   = B12 + B13 (Inland Transportation + Warehousing (Distributor))
-  sheet.getRange("F11").setFormula("=$B$12 + $B$13");
+  // F11: Distributor Costs = B10 + B11
+  // But wait, check the row references. The input array:
+  // row 10 -> "State Tax (per liter)"
+  // row 11 -> "Inland Transportation"
+  // row 12 -> "Warehousing (Distributor)"
+  // So "Inland Transportation" is B10? Actually no, that doesn't match above. Let's read carefully:
+  //   row 2: Column headings
+  //   row 3: "Total Cases"
+  //   row 4: "Brand"
+  //   row 5: "Shipping"
+  //   row 6: "Warehousing (Importer)"
+  //   row 7: "Transportation"
+  //   row 8: "Import Tariffs (%)"
+  //   row 9: "Misc Costs"
+  //   row 10: "State Tax (per liter)"
+  //   row 11: "Inland Transportation"
+  //   row 12: "Warehousing (Distributor)"
+  //   row 13: "Distributor Markup (%)"
+  //   row 14: "Retailer Markup (%)"
+  //   row 15: "Retail Shelf Price"
+  // Therefore:
+  //   B11 = "Inland Transportation"
+  //   B12 = "Warehousing (Distributor)"
+  sheet.getRange("F11").setFormula("=$B$11 + $B$12");
 
-  // F12 (Importer Total Cost, i.e. baseCost):
-  //   = B5 + B6 + B7 + B8 + (B10 / B4) + F8 + F9 + F10
-  //   (COGS + Shipping + Warehousing(Importer) + Transportation + (MiscCosts / Cases) + FedTax + Duty + StateTax)
+  // F12: Importer Total Cost
+  //    brandCost + shipping + warehousingImporter + transportation + (miscCosts / totalCases) + F8 + F9 + F10
+  // brandCost = VLOOKUP($B$4, $AC$2:$AD$7, 2, FALSE)
+  // shipping = B5
+  // warehousingImp = B6
+  // transportation = B7
+  // miscCosts = B9
+  // totalCases = B3
   sheet.getRange("F12").setFormula(
-    "=$B$5 + $B$6 + $B$7 + $B$8 + ($B$10/$B$4) + F8 + F9 + F10"
+    "=VLOOKUP($B$4, $AC$2:$AD$7, 2, FALSE)"
+    + "+ $B$5 + $B$6 + $B$7 + ($B$9 / $B$3)"
+    + "+ F8 + F9 + F10"
   );
 
   // (B) Price per Case items
-  //
-  // F18 (Shelf Price): = B16 (Retail Shelf Price per bottle) * 12
-  sheet.getRange("F18").setFormula("=$B$16 * 12");
+  // F18: Shelf Price = B15 (retail shelf price per bottle) * 12
+  sheet.getRange("F18").setFormula("=$B$15 * 12");
 
-  // F17 (Wholesale Price):
-  //   The formula (distributor → retailer) = shelfPrice / (1 + retailerMarkup)
-  //   = F18 / (1 + (B15 / 100))
-  sheet.getRange("F17").setFormula("=F18 / (1 + ($B$15 / 100))");
+  // F17: Wholesale Price = shelfPrice / (1 + retailerMarkup)
+  //   => = F18 / (1 + (B14/100))
+  sheet.getRange("F17").setFormula("=F18 / (1 + ($B$14 / 100))");
 
-  // F15 (FOB Price):
-  //   The script does: importerPrice = (wholesalePrice / (1+ distributorMarkup)) - distributorCosts
-  //   So = F17 / (1 + (B14 / 100)) - F11
-  sheet.getRange("F15").setFormula("=F17 / (1 + ($B$14 / 100)) - F11");
+  // F15: FOB Price = (wholesalePrice / (1+ distributorMarkup)) - distributorCosts
+  //   => = F17 / (1 + (B13/100)) - F11
+  sheet.getRange("F15").setFormula("=F17 / (1 + ($B$13 / 100)) - F11");
 
-  // F16 (Landed Cost):
-  //   = F12 (baseCost) + F11 (distributorCosts)
-  sheet.getRange("F16").setFormula("=F15 + F11");
+  // F16: Landed Cost = F12 + F11 (Importer base cost + distributor costs)
+  sheet.getRange("F16").setFormula("=F12 + F11");
 
   // (C) Profit Analysis
-  //
-  // F3 (Importer Markup (%)):
-  //   = ((F15 - F12) / F12) * 100
+  // F3: Importer Markup (%) = ((FOB Price - importer base cost) / importer base cost) * 100
+  //   => = ((F15 - F12)/F12)*100
   sheet.getRange("F3").setFormula("=((F15 - F12)/F12)*100");
 
-  // F4 (Importer Profit per Case):
-  //   = (FOB Price - baseCost)
+  // F4: Importer Profit per Case = FOB Price - importer base cost
   sheet.getRange("F4").setFormula("=F15 - F12");
 
-  // F5 (Importer Total Profit):
-  //   = (profit per case) * (total cases) => F4 * B4
-  sheet.getRange("F5").setFormula("=F4 * $B$4");
+  // F5: Importer Total Profit = (Profit per case) * (Total cases)
+  //   => = F4 * B3
+  sheet.getRange("F5").setFormula("=F4 * $B$3");
 
-  // (D) Price per Bottle (Columns E–F, rows 19–22)
-  //    We’ll keep the original labeling, but set formulas accordingly:
-  //
-  // F20 = (FOB Price / 12)
+  // (D) Price per Bottle (rows 19–22)
+  // F20 = FOB Price / 12
   sheet.getRange("F20").setFormula("=F15 / 12");
 
-  // F21 = (Wholesale Price / 12)
+  // F21 = Wholesale Price / 12
   sheet.getRange("F21").setFormula("=F17 / 12");
 
-  // F22 = (Shelf Price / 12)
+  // F22 = Shelf Price / 12
   sheet.getRange("F22").setFormula("=F18 / 12");
 
   // -----------------------------
-  // 5) Formatting or finishing touches
+  // 6) Formatting
   // -----------------------------
-  // Optionally, force number formatting on these cells.
-  // For example, set them to currency or 2-decimal places:
   var currencyCells = [
     "F4","F5","F8","F9","F10","F11","F12","F15","F16","F17","F18","F20","F21","F22"
   ];
