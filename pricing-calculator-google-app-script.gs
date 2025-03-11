@@ -15,7 +15,8 @@ function setupCostAnalysisUI() {
   // Setup the Input Section (Columns A:C)
   // -----------------------------
   sheet.getRange("A1:C1").merge();
-  sheet.getRange("A1").setValue("INPUTS")
+  sheet.getRange("A1")
+      .setValue("INPUTS")
       .setFontWeight("bold")
       .setFontSize(14)
       .setHorizontalAlignment("center")
@@ -34,8 +35,8 @@ function setupCostAnalysisUI() {
     ["State Tax (per liter)", "Georgia", "Select a state"],
     ["Inland Transportation", 3.5, "Distributor inland transportation cost"],
     ["Warehousing (Distributor)", 5, "Distributor warehousing cost"],
-    ["Distributor Margin (%)", 25, "Distributor margin percentage"],
-    ["Retailer Margin (%)", 30, "Retailer margin percentage"],
+    ["Distributor Markup (%)", 30, "Distributor markup percentage"],
+    ["Retailer Markup (%)", 30, "Retailer markup percentage"],
     ["Retail Shelf Price", 18, "Final price per bottle at retail"]
   ];
 
@@ -63,33 +64,52 @@ function setupCostAnalysisUI() {
   // -----------------------------
   // Setup the Output Section (Columns E–F)
   // -----------------------------
-  // Rearranged sections: Profit Analysis is now at the top.
+  // "Profit Analysis" remains the same;
+  // "Price per Case" section is expanded with four lines (FOB Price, Landed Cost, Wholesale Price, Shelf Price).
   var sections = [
-    { title: "Profit Analysis", startRow: 2, data: [
-      ["Importer Margin (%)", ""],
-      ["Importer Profit per Case", ""],
-      ["Importer Total Profit", ""]
-    ]},
-    { title: "Cost per Case", startRow: 7, data: [
-      ["Federal Taxes", ""],
-      ["Import Duty", ""],
-      ["State Tax", ""],
-      ["Distributor Costs", ""],
-      ["Importer Total Cost", ""]
-    ]},
-    { title: "Price per Case", startRow: 14, data: [
-      ["Importer Selling Price", ""],
-      ["Distributor Selling Price", ""],
-      ["Retailer Shelf Price", ""]
-    ]},
-    { title: "Price per Bottle", startRow: 19, data: [
-      ["Importer Selling Price", ""],
-      ["Distributor Selling Price", ""],
-      ["Retailer Shelf Price", ""]
-    ]}
+    {
+      title: "Profit Analysis",
+      startRow: 2,
+      data: [
+        ["Importer Markup (%)", ""],
+        ["Importer Profit per Case", ""],
+        ["Importer Total Profit", ""]
+      ]
+    },
+    {
+      title: "Cost per Case",
+      startRow: 7,
+      data: [
+        ["Federal Taxes", ""],
+        ["Import Duty", ""],
+        ["State Tax", ""],
+        ["Distributor Costs", ""],
+        ["Importer Total Cost", ""]
+      ]
+    },
+    {
+      title: "Price per Case",
+      startRow: 14,
+      data: [
+        ["FOB Price", ""],        // replaces "Importer Selling Price"
+        ["Landed Cost", ""],      // newly added row
+        ["Wholesale Price", ""],  // replaces "Distributor Selling Price"
+        ["Shelf Price", ""]       // replaces "Retailer Shelf Price"
+      ]
+    },
+    {
+      title: "Price per Bottle",
+      startRow: 19,
+      data: [
+        ["Importer Selling Price", ""],
+        ["Distributor Selling Price", ""],
+        ["Retailer Shelf Price", ""]
+      ]
+    }
   ];
 
   sections.forEach(function(section) {
+    // Merge the section title cell
     sheet.getRange("E" + section.startRow + ":F" + section.startRow).merge();
     sheet.getRange("E" + section.startRow)
       .setValue(section.title)
@@ -97,9 +117,14 @@ function setupCostAnalysisUI() {
       .setFontSize(14)
       .setHorizontalAlignment("center")
       .setBackground("#f4cccc");
-    sheet.getRange("E" + (section.startRow + 1) + ":F" + (section.startRow + section.data.length))
+
+    // Fill in the data rows
+    var dataHeight = section.data.length;
+    sheet.getRange("E" + (section.startRow + 1) + ":F" + (section.startRow + dataHeight))
       .setValues(section.data);
-    sheet.getRange("E" + section.startRow + ":F" + (section.startRow + section.data.length))
+
+    // Add borders
+    sheet.getRange("E" + section.startRow + ":F" + (section.startRow + dataHeight))
       .setBorder(true, true, true, true, true, true);
   });
 
@@ -128,23 +153,23 @@ function calculateCostAnalysisUI() {
   var importTariffs = Number(inputs["Import Tariffs (%)"]) / 100;
   var miscCosts = Number(inputs["Misc Costs"]);
   var retailerPricePerBottle = Number(inputs["Retail Shelf Price"]);
-  var retailerMargin = Number(inputs["Retailer Margin (%)"]) / 100;
-  var distributorMargin = Number(inputs["Distributor Margin (%)"]) / 100;
+
+  var retailerMarkup = Number(inputs["Retailer Markup (%)"]) / 100;
+  var distributorMarkup = Number(inputs["Distributor Markup (%)"]) / 100;
+
   var inlandTransportation = Number(inputs["Inland Transportation"]);
   var warehousingDistributor = Number(inputs["Warehousing (Distributor)"]);
 
-  // Assume each case contains 12 bottles of 0.75 liters each (total 9 liters per case)
+  // Each case: 12 bottles @ 0.75 liters each = 9 liters per case
   var litersPerCase = 9;
 
-  // Calculate Federal tax using CBMA tax rate for distilled spirits.
-  // CBMA tax rate is $2.7 per proof gallon, where one proof gallon is one gallon of spirit at 50% alcohol.
-  // For our 40% v/v spirits, the conversion factor is 40/50 = 0.8.
+  // Federal tax using CBMA rate of $2.70 per proof gallon for 40% ABV
   var gallonsPerLiter = 0.264172;
   var gallonsPerCase = litersPerCase * gallonsPerLiter;
   var proofGallonsPerCase = gallonsPerCase * (40 / 50);
   var federalTaxPerCase = proofGallonsPerCase * 2.7;
 
-  // Use the provided state tax rate mapping (rates are per liter)
+  // State tax
   var stateTaxRates = {
     "Alabama": 5.73, "Alaska": 3.38, "Arizona": 0.79, "Arkansas": 2.12,
     "California": 0.87, "Colorado": 0.60, "Connecticut": 1.57, "Delaware": 1.19,
@@ -165,39 +190,68 @@ function calculateCostAnalysisUI() {
   var stateTaxPerCase = litersPerCase * stateTaxRate;
 
   var importDutyPerCase = cogs * importTariffs;
-  var baseCost = cogs + shipping + warehousingImporter + transportation +
-                 (miscCosts / cases) + federalTaxPerCase + importDutyPerCase + stateTaxPerCase;
 
+  // Summation of all importer-based costs
+  var baseCost = cogs
+               + shipping
+               + warehousingImporter
+               + transportation
+               + (miscCosts / cases)
+               + federalTaxPerCase
+               + importDutyPerCase
+               + stateTaxPerCase;
+
+  // Distributor’s additional costs
   var distributorCosts = inlandTransportation + warehousingDistributor;
-  // Retailer price per case (assuming 12 bottles per case)
+
+  // Retailer shelf price per case (12 bottles)
   var retailerPrice = retailerPricePerBottle * 12;
-  var distributorPrice = retailerPrice * (1 - retailerMargin);
-  var importerPrice = (distributorPrice / (1 + distributorMargin)) - distributorCosts;
-  var importerMargin = ((importerPrice - baseCost) / baseCost) * 100;
+
+  // The script calculates backward from the final shelf price:
+  //   wholesalePrice = retailerPrice / (1 + retailerMarkup)
+  //   fobPrice       = (wholesalePrice / (1 + distributorMarkup)) - distributorCosts
+  //
+  // We interpret "FOB Price" = importerPrice in the old script
+  // "Wholesale Price" = distributorPrice
+  var distributorPrice = retailerPrice / (1 + retailerMarkup);
+  var importerPrice = (distributorPrice / (1 + distributorMarkup)) - distributorCosts;
+
+  // For "Landed Cost," we assume it includes all importer costs + distributor costs
+  var landedCost = importerPrice + distributorCosts;
+
+  // Calculate the importer's markup = ((importerPrice - baseCost) / baseCost) * 100
+  var importerMarkup = ((importerPrice - baseCost) / baseCost) * 100;
   var importerProfitPerCase = importerPrice - baseCost;
   var importerTotalProfit = importerProfitPerCase * cases;
 
   // -----------------------------
-  // Set Output Values (updated cell addresses based on rearranged sections)
+  // Set Output Values
   // -----------------------------
-  // Profit Analysis (Rows 2–5)
-  sheet.getRange("F3").setValue(importerMargin.toFixed(2) + "%");
-  sheet.getRange("F4").setValue("$" + importerProfitPerCase.toFixed(2));
-  sheet.getRange("F5").setValue("$" + importerTotalProfit.toFixed(2));
 
-  // Cost per Case (Rows 7–12)
-  sheet.getRange("F8").setValue("$" + federalTaxPerCase.toFixed(2));
-  sheet.getRange("F9").setValue("$" + importDutyPerCase.toFixed(2));
-  sheet.getRange("F10").setValue("$" + stateTaxPerCase.toFixed(2));
-  sheet.getRange("F11").setValue("$" + distributorCosts.toFixed(2));
-  sheet.getRange("F12").setValue("$" + baseCost.toFixed(2));
+  // 1) Profit Analysis (Rows 2–5)
+  sheet.getRange("F3").setValue(importerMarkup.toFixed(2) + "%");        // Importer Markup (%)
+  sheet.getRange("F4").setValue("$" + importerProfitPerCase.toFixed(2)); // Importer Profit per Case
+  sheet.getRange("F5").setValue("$" + importerTotalProfit.toFixed(2));   // Importer Total Profit
 
-  // Price per Case (Rows 14–17)
-  sheet.getRange("F15").setValue("$" + importerPrice.toFixed(2));
-  sheet.getRange("F16").setValue("$" + distributorPrice.toFixed(2));
-  sheet.getRange("F17").setValue("$" + retailerPrice.toFixed(2));
+  // 2) Cost per Case (Rows 7–12)
+  sheet.getRange("F8").setValue("$" + federalTaxPerCase.toFixed(2));     // Federal Taxes
+  sheet.getRange("F9").setValue("$" + importDutyPerCase.toFixed(2));     // Import Duty
+  sheet.getRange("F10").setValue("$" + stateTaxPerCase.toFixed(2));      // State Tax
+  sheet.getRange("F11").setValue("$" + distributorCosts.toFixed(2));     // Distributor Costs
+  sheet.getRange("F12").setValue("$" + baseCost.toFixed(2));             // Importer Total Cost
 
-  // Price per Bottle (Rows 19–22)
+  // 3) Price per Case (Rows 14–18)
+  //    - F15: FOB Price
+  //    - F16: Landed Cost
+  //    - F17: Wholesale Price
+  //    - F18: Shelf Price
+  sheet.getRange("F15").setValue("$" + importerPrice.toFixed(2));     // FOB Price
+  sheet.getRange("F16").setValue("$" + landedCost.toFixed(2));        // Landed Cost
+  sheet.getRange("F17").setValue("$" + distributorPrice.toFixed(2));  // Wholesale Price
+  sheet.getRange("F18").setValue("$" + retailerPrice.toFixed(2));     // Shelf Price
+
+  // 4) Price per Bottle (Rows 19–22) - unchanged logic
+  //    (Original labels remain for reference; you can rename them similarly if desired.)
   sheet.getRange("F20").setValue("$" + (importerPrice / 12).toFixed(2));
   sheet.getRange("F21").setValue("$" + (distributorPrice / 12).toFixed(2));
   sheet.getRange("F22").setValue("$" + (retailerPrice / 12).toFixed(2));
